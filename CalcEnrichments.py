@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import sys
 
 """
 To run from command line:
@@ -74,8 +75,12 @@ if __name__ == "__main__":
 	frm = int(sys.argv[3]) # first length range
 	to = int(sys.argv[4]) # second length range
 	winfnc = lambda peps: [k for i in peps for j in range(frm,to) for k in window(i,j) ]
-	library = PeptideLibrary(read(sys.argv[1]),winfnc)
+	libseqs = read(sys.argv[1])
+	library = PeptideLibrary(libseqs,winfnc)
 	chosen = read(sys.argv[2])
+	for i in chosen:
+		if not i in libseqs:
+			sys.stderr.write("WARN: Sequence {0} not in library\n".format(i))
 	subseqs = library.windowfunc(chosen)
 	n_chosen = len(subseqs)
 	subseqs = Counter(subseqs)
