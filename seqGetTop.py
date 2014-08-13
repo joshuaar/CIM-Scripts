@@ -24,8 +24,8 @@ if __name__ == "__main__":
 		vals.reverse()# now largest to smallest
 		if args.percentile:
 			npeps = len(vals)
-			lower = args.percentile[0]*npeps
-			upper = args.percentile[1]*npeps
+			lower = (1 - args.percentile[1])*npeps
+			upper = (1 - args.percentile[0])*npeps
 		elif args.rng:
 			lower,upper = args.rng
 		vals,peps = zip(*vals[int(lower):int(upper)])

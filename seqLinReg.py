@@ -90,9 +90,13 @@ if __name__ == "__main__":
         parser.add_argument("-o", "--output")
         parser.add_argument("-t", "--log_transform", action="store_true")
         parser.add_argument("-l","--limit", nargs=2, type=float)
+        parser.add_argument("-e","--exclude", help="exclude amino acids")
 	parser.add_argument("--col", type=int)
         args = parser.parse_args()
 	data = Data.ChipData.fromFileName(args.infile)
+	if args.exclude:
+		for aa in args.exclude:
+			data.peptides = [i.replace(aa,"") for i in data.peptides]
 	if args.remove_end:
 		data = preprocess(data)
 	if args.log_transform:
