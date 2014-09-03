@@ -52,7 +52,7 @@ TTestDescriptive = function(data){
 	sapply(1:ncol(data),function(i){
 		res = singleSampleTTest(data,i)
 		adj_FDR = p.adjust(res,"fdr")
-		adj_Bon = res/length(res)
+		adj_Bon = res*length(res)
 
 		n_unadj = sum(res < 0.05)
 		n_FDR = sum(adj_FDR < 0.05)
