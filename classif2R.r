@@ -32,6 +32,20 @@ trainTestSplit = function(data,classes){
 	out
 }
 
+singleSampleTTest = function(data,col){
+	#Performs single sample T Test on specific column (one vs rest)
+	ttestfunc = function(row,col){
+		pv = tryCatch({
+			t.test(row[-col], mu=row[col])$p.value
+			},
+			error = function(e){1},
+			warning = function(w){1}
+			)
+		pv
+	}
+	apply(data,1,function(i)ttestfunc(i,col))
+}
+
 multiTTest = function(data,classes,cutoff){
 	# T test on each class against the others. selects feature indexes
 	uClasses = unique(classes)
