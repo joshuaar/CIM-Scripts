@@ -46,6 +46,23 @@ singleSampleTTest = function(data,col){
 	apply(data,1,function(i)ttestfunc(i,col))
 }
 
+TTestDescriptive = function(data){
+	#Single sample T Test on each column, does testing correction,
+	#outputs summary table.
+	sapply(1:ncol(data),function(i){
+		res = singleSampleTTest(data,i)
+		adj_FDR = p.adjust(res,"fdr")
+		adj_Bon = res/length(res)
+
+		n_unadj = sum(res < 0.05)
+		n_FDR = sum(adj_FDR < 0.05)
+		n_Bon = sum(adj_Bon < 0.05)
+		out = c(n_unadj,n_FDR,n_Bon)
+		names(out) = c("n_unadjusted", "n_fdr", "n_bon")
+		out
+	})
+}
+
 multiTTest = function(data,classes,cutoff){
 	# T test on each class against the others. selects feature indexes
 	uClasses = unique(classes)
