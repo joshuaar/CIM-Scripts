@@ -1,6 +1,8 @@
 import numpy as np
+import csv
 import argparse
 import matplotlib.pyplot as plt
+import sys, os
 
 """
 Simulates a basic model of peptide arrays based on first order kinetics
@@ -111,9 +113,13 @@ class SimulateSystem(object):
 		print ""
 		print "Peptide Concentrations:"
 		print "\t".join([str(i) for i in self.cPepsFree])
+		print "Total Peptide (nM):"
+		print sum(self.cPepsFree) * 10**9
 		print ""
 		print "Antibody Concentrations"
 		print "\t".join([str(i) for i in self.cAbsFree])
+		print "Total Antibody(nM):"
+		print sum(self.cAbsFree) * 10**9
 	def simulate(self, t=1, dt = 0.01):
 		"Simulates t hours using dt seconds as step"
 		stateMatrix = []
@@ -190,18 +196,37 @@ if __name__ == "__main__":
         parser.add_argument("-s", "--surface_area", type=float, default=0.49)
         parser.add_argument("-t", "--sim_time", type=float, default=1)
         parser.add_argument("-dt", "--d_sim_time", type=float, default=0.1)
+        parser.add_argument("-gen", "--gen_koff", type=str)
+        parser.add_argument("-koff", "--k_off", type=str)
+        parser.add_argument("-out", "--output", type=str)
         args = parser.parse_args()
-
 	assay = AssayProps.fromVols(args.volume, args.density, args.conc_ab, args.surface_area)
 	kinetics = KineticProps.fromPareto(args.nAbs, args.nPeps, args.minOff, args.pareto_a, args.k_on, args.k_irrev)
-	
+	if args.gen_koff:
+		f = open(args.gen_koff,"w")
+		wtr = csv.writer(f)
+		wtr.writerows(kinetics.kOff)
+		sys.exit(0)
+
+	if args.k_off:
+		f = open(args.k_off,"r")
+		rdr = csv.reader(f)
+		k_off = [[float(j) for j in i] for i in rdr]
+		print k_off
+		kinetics.kOff = np.array(k_off)
+		
 	sim = SimulateSystem(kinetics, assay)
 	print sim.summary()
+	print "Affinity Matrix (nM):"
+	print (kinetics.kOff / kinetics.kOn) * 10**9
 	res = sim.simulate(t=args.sim_time, dt=args.d_sim_time)
 	print "Final antibody concentrations:"
 	print sim.getAbMasses()
 	print "Final free peptide concentrations:"
 	print sim.getPepMasses()
+	if args.output:
+		os.mkdir(args.output)
+		os.chdir(args.output)
 	for row in res.transpose():
 		plt.plot(row)
 	plt.show()
