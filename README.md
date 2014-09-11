@@ -6,7 +6,7 @@ I wrote these during graduate study.
 
 ##Programs with CLI's
 
-Some of these have CLI's associated with them. These are:
+Some of these have command line interfaces associated with them. These are:
 
 - fasta2list.py
 - pepKineticModel.py
@@ -23,4 +23,4 @@ Some of these have CLI's associated with them. These are:
 - pca.py
 - seqLinReg.py
 
-Some of these are self explanitory, most are not. Documentation may come soon.
+Some of these are self explanitory, most are not. Documentation may come soon, along with a bin folder.
