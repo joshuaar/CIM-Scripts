@@ -48,6 +48,25 @@ def FDR(x):
     l = [l[k] if l[k] < 1.0 else 1.0 for k in ro]
     return l
 
+def calcEnrichments(library,libseqs,chosen,frm,to):
+	for i in chosen:
+		if not i in libseqs:
+			sys.stderr.write("WARN: Sequence {0} not in library\n".format(i))
+	subseqs = library.windowfunc(chosen)
+	n_chosen = len(subseqs)
+	subseqs = Counter(subseqs)
+	res = [(i, subseqs[i], library.pepcounts[i], 1-binom.cdf(subseqs[i],n_chosen,library.pepcounts[i]*1.0/library.N_pop), subseqs[i]*1.0/library.pepcounts[i]) for i in subseqs]
+	
+	res_t = zip(*res)
+	pvals = res_t[3]
+	pvals_adj = FDR(pvals)
+	res_t += [pvals_adj]
+	res = zip(*res_t)
+	print "{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format("seq","n_enriched","n_library","p_binom","frac","p_adjusted")
+	for seq,n_enriched,n_lib,p_binom,frac,p_adj in sorted(res,key=lambda x:x[3]):
+		if n_lib > 1 and n_enriched > 1 and not "GSG" in seq:
+			print "{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(seq,n_enriched,n_lib,p_binom,frac,p_adj)
+
 class PeptideLibrary(object):
 
 	def __init__(self,peps,windowfunc=defaultwin):
@@ -78,20 +97,5 @@ if __name__ == "__main__":
 	libseqs = read(sys.argv[1])
 	library = PeptideLibrary(libseqs,winfnc)
 	chosen = read(sys.argv[2])
-	for i in chosen:
-		if not i in libseqs:
-			sys.stderr.write("WARN: Sequence {0} not in library\n".format(i))
-	subseqs = library.windowfunc(chosen)
-	n_chosen = len(subseqs)
-	subseqs = Counter(subseqs)
-	res = [(i, subseqs[i], library.pepcounts[i], 1-binom.cdf(subseqs[i],n_chosen,library.pepcounts[i]*1.0/library.N_pop), subseqs[i]*1.0/library.pepcounts[i]) for i in subseqs]
-	
-	res_t = zip(*res)
-	pvals = res_t[3]
-	pvals_adj = FDR(pvals)
-	res_t += [pvals_adj]
-	res = zip(*res_t)
-	
-	for i,j,k,l,m,n in sorted(res,key=lambda x:x[3]):
-		#if k > 1:
-		print "{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(i,j,k,l,m,n)
+	calcEnrichments(library,libseqs,chosen,frm,to)
+

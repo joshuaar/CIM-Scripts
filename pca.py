@@ -1,5 +1,9 @@
 #!/usr/bin/python
-"Creates a PCA plot from a matrix and user input"
+"""
+Creates a PCA plot from a matrix and user input
+Requires matplotlib, numpy, scikit learn libraries
+Usage: python pca.py -c CLASSLABELS INPUTDATA
+"""
 import csv, argparse
 from matplotlib.mlab import PCA
 import numpy as np

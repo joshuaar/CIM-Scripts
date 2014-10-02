@@ -1,5 +1,7 @@
 #!/usr/bin/python
-import Data,argparse
+import Data,argparse,sys
+import CalcEnrichments as c
+import numpy as np
 
 def FDR(x):
     """
@@ -22,6 +24,9 @@ if __name__ == "__main__":
 	parser.add_argument("-g","--group",required=True)
 	parser.add_argument("-a","--adjust",action="store_true")
 	parser.add_argument("-n","--normalize",action="store_true")
+	parser.add_argument("-d","--downs",action="store_true")
+	parser.add_argument("-u","--ups",action="store_true")
+	parser.add_argument("-e","--enrich",type=str,nargs=2)
         args = parser.parse_args()
 	
 	x = Data.ChipData.fromFileName(args.infile)
@@ -30,6 +35,16 @@ if __name__ == "__main__":
 	if args.classes:
 		classes = open(args.classes).read().split()
 		x.samples = classes
+	if args.ups or args.downs:
+		x1=x.selectCols(args.group)
+		x2=x.selectCols(args.group,True)
+		vals1=[np.mean(i) for i in x1.values]
+		vals2=[np.mean(i) for i in x2.values]
+		ups = [j>i for i,j in zip(vals1,vals2)]
+		if args.downs:
+			ups = [j<i for i,j in zip(vals1,vals2)]
+		x.values = x.values[np.array(ups),:]
+		x.peptides = [i for i,j in zip(x.peptides,ups) if j]
 	selected = x.select(args.group)
 	pvals = selected.significance
 	if args.adjust:
@@ -39,6 +54,15 @@ if __name__ == "__main__":
 		out = [i for i in out if i[1] < args.pvalue]
 	if args.lower_pval:
 		out = [i for i in out if i[1] > args.lower_pval]
-	for i,j in out:
-		print "{0}\t{1}".format(i,j)
+	if args.enrich:
+		frm = int(args.enrich[0])
+		to = int(args.enrich[1])
+		libseqs = x.peptides 
+		winfnc = lambda peps: [k for i in peps for j in range(frm,to) for k in c.window(i,j)]
+		library = c.PeptideLibrary(libseqs,winfnc)
+		chosen = zip(*out)[0]
+		c.calcEnrichments(library,libseqs,chosen,frm,to)
+	else:
+		for i,j in out:
+			print "{0}\t{1}".format(i,j)
 	
